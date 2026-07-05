@@ -220,7 +220,7 @@ export const TIMELINE_ERAS_DATA: EraData[] = [
           El 31 de octubre de 1517, el monje Martín Lutero clava sus <a href='https://es.wikipedia.org/wiki/Las_95_tesis' target='_blank' class='inline-link' data-preview='Documento clave de protesta'>95 tesis</a>
           en la puerta de la iglesia del palacio en Wittenberg, Alemania. Con ellas protestaba firmemente contra la venta de indulgencias por parte de la
           Iglesia Católica y los abusos clericales, encendiendo así la irreversible chispa de la Reforma Protestante y recuperando la doctrina de la justificación por la fe sola (Sola Fide).`,
-        image: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Martin_Luther_by_Cranach-restoration.tif/lossy-page1-600px-Martin_Luther_by_Cranach-restoration.tif.jpg"
+        image: "https://upload.wikimedia.org/wikipedia/commons/b/b7/Martin_Luther_by_Cranach-restoration.jpg"
       },
       {
         year: "1536",
@@ -396,14 +396,14 @@ export const TIMELINE_ERAS_DATA: EraData[] = [
         shortDesc: "Revisión histórica muy apreciada, criticada modernamente por permitir lecturas del Texto Crítico.",
         fullDesc: `Publicada por la Sociedad Bíblica Americana y la Británica, la <strong>RV 1909</strong> actualizó la ortografía. Sin embargo, incorporó sutilmente algunas influencias
           del <strong>Texto Crítico</strong> en su NT, apartándose del Textus Receptus puro. Esta mezcla motivó los futuros esfuerzos de purificación independiente.`,
-        image: "https://i.ebayimg.com/images/g/e14AAOSw7U1iYaRZ/s-l1200.jpg"
+        image: "https://upload.wikimedia.org/wikipedia/commons/f/fd/Biblia_Reina-Valera_1909.jpg"
       },
       {
         year: "1960",
         title: "Reina-Valera 1960",
         tags: ['biblia'],
         shortDesc: "Las Sociedades Bíblicas Unidas publican la revisión que se convertiría en la Biblia más amada en el mundo de habla hispana contemporáneo.",
-        fullDesc: `<img src='https://assets.lifeway.com/image/upload/v1739331613/rvr1960_en_negro_700x465.png' class='modal-inline-img' alt='Biblia RVR 1960' title='Reina-Valera 1960'>
+        fullDesc: `<img src='https://m.media-amazon.com/images/S/aplus-media-library-service-media/df26a498-b71f-448b-abca-ea2d839a909c.__CR0,0,350,175_PT0_SX350_V1___.png' class='modal-inline-img' alt='Biblia RVR 1960' title='Reina-Valera 1960'>
           Coordinada por las <a href='https://es.wikipedia.org/wiki/Sociedades_B%C3%ADblicas_Unidas' target='_blank' class='inline-link' data-preview='Unión bíblica global'>Sociedades Bíblicas Unidas (SBU)</a>, esta histórica magna revisión actualizó la gramática
           y el lenguaje de la Biblia para los hispanohablantes modernos mientras conservaba impecablemente la majestad y el estilo rítmico de la antigua traducción.<br><br>
           Gozando de una impresionante aceptación inmediata, la <strong>Reina-Valera 1960</strong> se estandarizó en casi todas las denominaciones evangélicas, siendo
@@ -463,7 +463,7 @@ export const TIMELINE_EVENTS: TimelineEvent[] = TIMELINE_ERAS_DATA.flatMap((era)
   return era.events.map((raw, index) => {
     const parsed = parseYearString(raw.year);
     return {
-      id: `event-${era.name.substring(0,3).replace(/\s+/g, '')}-${index}-${parsed.start}`,
+      id: `event-${era.name.substring(0, 3).replace(/\s+/g, '')}-${index}-${parsed.start}`,
       yearLabel: raw.year,
       yearStart: parsed.start,
       yearEnd: parsed.end,

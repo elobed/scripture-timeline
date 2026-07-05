@@ -1,6 +1,6 @@
 import {
   Component, Input, Output, EventEmitter,
-  OnInit, OnChanges, SimpleChanges, HostListener, inject
+  OnInit, OnChanges, SimpleChanges, HostListener, inject, signal
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -59,11 +59,11 @@ import { TIMELINE_TAGS } from '../../data/timeline-events.data';
 
         <!-- Main image — left column on desktop -->
         <img
-          *ngIf="event.image"
+          *ngIf="event.image && !imageHidden()"
           class="modal-image"
           [src]="event.image"
           [alt]="event.title"
-          (error)="onImgError($event)">
+          (error)="onImgError()">
 
         <!-- Scrollable body — right column on desktop -->
         <div class="modal-body">
@@ -365,6 +365,7 @@ export class EventModalComponent implements OnInit, OnChanges {
 
   private sanitizer = inject(DomSanitizer);
   safeHtml!: SafeHtml;
+  imageHidden = signal(false);
 
   ngOnInit(): void {
     document.body.style.overflow = 'hidden';
@@ -378,6 +379,7 @@ export class EventModalComponent implements OnInit, OnChanges {
   }
 
   private updateHtml(): void {
+    this.imageHidden.set(false);
     this.safeHtml = this.sanitizer.bypassSecurityTrustHtml(this.event.fullDesc);
   }
 
@@ -403,8 +405,7 @@ export class EventModalComponent implements OnInit, OnChanges {
     return TIMELINE_TAGS[tagId];
   }
 
-  onImgError(event: Event): void {
-    const img = event.target as HTMLImageElement;
-    img.style.display = 'none';
+  onImgError(): void {
+    this.imageHidden.set(true);
   }
 }
