@@ -2,11 +2,12 @@ import {
   Component, Input, Output, EventEmitter,
   OnInit, OnChanges, SimpleChanges, HostListener, inject, signal
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { TimelineEvent } from '../../models/timeline.models';
 import { TIMELINE_TAGS } from '../../data/timeline-events.data';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-event-modal',
@@ -82,6 +83,18 @@ import { TIMELINE_TAGS } from '../../data/timeline-events.data';
           </div>
 
           <h2 class="modal-title">{{ event.title }}</h2>
+
+          <!-- Share link button -->
+          <button class="share-link-btn" (click)="copyLink()" [title]="linkCopied() ? 'Link copiado!' : 'Copiar link directo'">
+            <svg *ngIf="!linkCopied()" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+            </svg>
+            <svg *ngIf="linkCopied()" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M20 6L9 17l-5-5"/>
+            </svg>
+            <span>{{ linkCopied() ? '¡Copiado!' : 'Compartir enlace' }}</span>
+          </button>
 
           <div class="modal-description" [innerHTML]="safeHtml"></div>
         </div>
@@ -352,6 +365,34 @@ import { TIMELINE_TAGS } from '../../data/timeline-events.data';
         width: 350px;
       }
     }
+
+    /* ── Share Link Button ────────────────────────────────────── */
+    .share-link-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--color-border-light, rgba(255,255,255,0.15));
+      background: var(--color-surface-1, rgba(255,255,255,0.06));
+      color: var(--color-accent);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      white-space: nowrap;
+      align-self: flex-start;
+    }
+    .share-link-btn:hover {
+      background: var(--color-accent);
+      color: white;
+      border-color: var(--color-accent);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .share-link-btn:active {
+      transform: translateY(0);
+    }
   `]
 })
 export class EventModalComponent implements OnInit, OnChanges {
@@ -364,8 +405,11 @@ export class EventModalComponent implements OnInit, OnChanges {
   @Output() closed = new EventEmitter<void>();
 
   private sanitizer = inject(DomSanitizer);
+  private router = inject(Router);
+  private location = inject(Location);
   safeHtml!: SafeHtml;
   imageHidden = signal(false);
+  linkCopied = signal(false);
 
   ngOnInit(): void {
     document.body.style.overflow = 'hidden';
@@ -375,6 +419,7 @@ export class EventModalComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['event']) {
       this.updateHtml();
+      this.linkCopied.set(false);
     }
   }
 
@@ -407,5 +452,38 @@ export class EventModalComponent implements OnInit, OnChanges {
 
   onImgError(): void {
     this.imageHidden.set(true);
+  }
+
+  /** Build the shareable direct URL for the current event */
+  getShareUrl(): string {
+    // Build the URL tree with the event query param merged
+    const tree = this.router.createUrlTree([], {
+      queryParams: { event: this.event.id },
+      queryParamsHandling: 'merge',
+    });
+    const path = this.router.serializeUrl(tree);
+    const externalUrl = this.location.prepareExternalUrl(path);
+    return `${window.location.origin}${externalUrl}`;
+  }
+
+  /** Copy the share URL to clipboard with visual feedback */
+  copyLink(): void {
+    const url = this.getShareUrl();
+    navigator.clipboard.writeText(url).then(() => {
+      this.linkCopied.set(true);
+      setTimeout(() => this.linkCopied.set(false), 2500);
+    }).catch(() => {
+      // Fallback for older browsers
+      const textarea = document.createElement('textarea');
+      textarea.value = url;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      this.linkCopied.set(true);
+      setTimeout(() => this.linkCopied.set(false), 2500);
+    });
   }
 }

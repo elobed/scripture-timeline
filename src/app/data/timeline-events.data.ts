@@ -65,6 +65,7 @@ export const TIMELINE_ERAS_DATA: EraData[] = [
     bgImage: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/The_Trail_of_Blood.jpg/1920px-The_Trail_of_Blood.jpg",
     color: "#8b5cf6",
     events: [
+
       {
         year: "~250 a.C.",
         title: "La Septuaginta (LXX)",
@@ -162,9 +163,11 @@ export const TIMELINE_ERAS_DATA: EraData[] = [
         fullDesc: `La <a href='https://es.wikipedia.org/wiki/Santa_Inquisici%C3%B3n' target='_blank' class='inline-link' data-preview='Conoce más sobre la Inquisición'>Santa Inquisición</a>
           surgió como un tribunal eclesial destinado a investigar sospechas de herejía y preservar la ortodoxia en la Iglesia latina.<br><br>
           <ul class='modal-list'>
-            <li><strong>Origen:</strong> Se consolidó en la Península Ibérica en 1478, aunque sus raíces se remontan a la Edad Media.</li>
-            <li><strong>Modo de acción:</strong> Operó sobre todo por medio de procesos, condenas y vigilancia doctrinal.</li>
-            <li><strong>Diferencia clave:</strong> A diferencia de las cruzadas, que fueron campañas militares de conquista o defensa, la Inquisición fue un mecanismo judicial y disciplinario interno.</li>
+            <li><strong>Inquisición Medieval (1184):</strong> Fundada originalmente en el sur de Francia (Languedoc) por el Papa Lucio III para combatir a los cátaros y valdenses.</li>
+            <li><strong>Inquisición Española (1478):</strong> Establecida por los Reyes Católicos mediante bula papal, se enfocó fuertemente en identificar falsos conversos (judíos y musulmanes que practicaban su fe en secreto) y posteriormente en censurar literatura protestante.</li>
+            <li><strong>Inquisición Romana (1542):</strong> El Papa Pablo III estableció la Congregación del Santo Oficio en Roma con el objetivo principal de frenar el alarmante avance del Protestantismo en la península itálica.</li>
+            <li><strong>Modo de acción:</strong> Operó a través de juicios sistemáticos, tortura eclesiástica, quema de libros prohibidos (<em>Index Librorum Prohibitorum</em>) y castigos públicos masivos conocidos como <strong>Autos de Fe</strong>.</li>
+            <li><strong>Abolición (1834):</strong> Fue oficialmente abolida en España por un real decreto bajo el reinado de Isabel II, tras un largo periodo de declive de su poder.</li>
           </ul>`,
         image: "https://upload.wikimedia.org/wikipedia/commons/4/45/Pedro_Berruguete_Saint_Dominic_Presiding_over_an_Auto-da-fe_1495.jpg"
       }
@@ -390,6 +393,42 @@ export const TIMELINE_ERAS_DATA: EraData[] = [
         image: "https://streetviewpixels-pa.googleapis.com/v1/thumbnail?panoid=fL4X7WbmKHZ4liXyya7lsw&cb_client=search.gws-prod.gps&w=408&h=240&yaw=56.005978&pitch=0&thumbfov=100"
       },
       {
+        year: "1865",
+        title: "Reina-Valera 1865",
+        tags: ['biblia'],
+        shortDesc: "Revisión del Dr. Ángel H. de Mora para la American Bible Society; un panorama textual más complejo de lo que normalmente se piensa.",
+        fullDesc: `<p>La <strong>Reina-Valera 1865</strong> (también conocida como <strong>SBA 1865</strong>) es la revisión realizada por el
+          <strong>Dr. Ángel H. de Mora</strong> para la <a href='https://es.wikipedia.org/wiki/Sociedad_B%C3%ADblica_Americana' target='_blank' class='inline-link'>American Bible Society</a>.
+          Introdujo numerosos cambios respecto a la edición de 1602 y, según varios investigadores, en algunos lugares siguió la
+          <a href='https://es.wikipedia.org/wiki/Vulgata' target='_blank' class='inline-link'>Vulgata Latina</a> o traducciones tradicionales
+          en vez del <a href='https://es.wikipedia.org/wiki/Textus_Receptus' target='_blank' class='inline-link'>Textus Receptus</a>.</p>
+
+          <img src='https://assets.lulu.com/cover_thumbs/1/9/19zjk72j-ebook-shortedge-384.jpg'
+          class='modal-inline-img' alt='Edición moderna de la RV 1865' title='Edición moderna de la Reina-Valera 1865'>
+
+          <p><strong>📜 ¿Dos estados textuales?</strong></p>
+          <p>Existen al menos dos estados textuales asociados a esta revisión, según autores dentro del movimiento de defensa del Textus Receptus:</p>
+          <ul class='modal-list'>
+            <li><strong>1865 original:</strong> La revisión tal como fue publicada inicialmente, con algunas lecturas procedentes de la Vulgata Latina.</li>
+            <li><strong>1865 "revisada":</strong> Una edición posterior cuyo propósito, según descripciones halladas en proyectos de digitalización, fue eliminar las lecturas procedentes de la Vulgata y restaurar las del Textus Receptus, acercando la revisión al texto griego tradicional.</li>
+          </ul>
+
+          <p><strong>📖 Un panorama más complejo de lo que parece:</strong></p>
+          <p>La introducción del texto digitalizado de la 1865 explica que el ejemplar escaneado representa una <strong>edición de 1884</strong>,
+          y que hubo considerable trabajo editorial para distinguir revisiones diferentes de la época (1858, 1862 y 1865).
+          Existen múltiples impresiones posteriores (1884, 1907, etc.) con correcciones tipográficas y editoriales, pero estas
+          siguen identificándose como la revisión de 1865, no como una nueva revisión oficial.</p>
+
+          <p><strong>⚠️ Nota crítica:</strong></p>
+          <p>En cuanto a la afirmación de que existe una "1865 revisada" que elimina lecturas de la Vulgata para acercarse al
+          Textus Receptus, <strong>no se ha encontrado documentación primaria que la respalde</strong>. No existe un prólogo, aviso editorial
+          o registro histórico conocido que anuncie oficialmente una segunda revisión de la 1865 con ese objetivo.
+          El término "revisada" parece describir una impresión corregida o una edición preparada por editores modernos,
+          no una segunda revisión oficialmente publicada por la American Bible Society. Esta afirmación aparece repetida
+          en algunos círculos defensores del Textus Receptus, pero carece de respaldo documental formal.</p>`,
+        image: "https://static.wixstatic.com/media/a83ea6_a868bbd3c93b404b862e05c9c2e6c3d2~mv2.jpg/v1/fill/w_980,h_1307,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/a83ea6_a868bbd3c93b404b862e05c9c2e6c3d2~mv2.jpg"
+      },
+      {
         year: "1909",
         title: "Reina-Valera 1909 (La Antigua)",
         tags: ['biblia'],
@@ -397,6 +436,28 @@ export const TIMELINE_ERAS_DATA: EraData[] = [
         fullDesc: `Publicada por la Sociedad Bíblica Americana y la Británica, la <strong>RV 1909</strong> actualizó la ortografía. Sin embargo, incorporó sutilmente algunas influencias
           del <strong>Texto Crítico</strong> en su NT, apartándose del Textus Receptus puro. Esta mezcla motivó los futuros esfuerzos de purificación independiente.`,
         image: "https://upload.wikimedia.org/wikipedia/commons/f/fd/Biblia_Reina-Valera_1909.jpg"
+      },
+      {
+        year: "1947",
+        title: "Descubrimiento de los Rollos del Mar Muerto",
+        tags: ['biblia', 'historia'],
+        shortDesc: "Una vasta colección de manuscritos bíblicos antiguos, copiados y preservados por una comunidad judía en el desierto, salen a la luz.",
+        fullDesc: `<img src='https://upload.wikimedia.org/wikipedia/commons/1/15/Temple_Scroll.png'
+          class='modal-inline-img' alt='Rollo del Templo' title='Fragmento del Rollo del Templo, uno de los manuscritos más largos'>
+          Escritos, copiados y preservados entre el siglo III a.C. y el año 68 d.C., los <a href='https://es.wikipedia.org/wiki/Manuscritos_del_Mar_Muerto' target='_blank' class='inline-link' data-preview='Conoce más sobre los Rollos'>Rollos del Mar Muerto</a>
+          son una extraordinaria colección de más de 900 manuscritos judíos antiguos. Fueron ocultados en vasijas de barro dentro de varias cuevas rocosas en 
+          <strong>Qumrán</strong>, cerca de las áridas costas del Mar Muerto, presumiblemente para protegerlos del avance del ejército romano durante la Gran Revuelta Judía. 
+          Su asombroso <strong>descubrimiento a partir de 1947</strong> por un joven pastor beduino sacudió el mundo de la erudición bíblica, constituyendo el mayor hallazgo arqueológico del siglo XX.<br><br>
+          <img src='https://upload.wikimedia.org/wikipedia/commons/c/cb/Qumran.jpeg'
+          class='modal-inline-img img-large' alt='Cuevas de Qumrán' title='Las cuevas de Qumrán, donde se ocultaron los rollos por casi dos milenios'>
+          <strong>📜 ¿Qué se encontró en las cuevas?:</strong>
+          <ul class='modal-list'>
+            <li><strong>Manuscritos Bíblicos (40%):</strong> Copias de todos los libros del Antiguo Testamento hebreo (excepto Ester). Destaca el <strong>Gran Rollo de Isaías</strong>, el cual demostró una precisión asombrosa en la preservación del texto al ser comparado con el Texto Masorético medieval de mil años después.</li>
+            <li><strong>Textos Sectarios (30%):</strong> Documentos exclusivos de la estricta comunidad judía que habitó la zona (probablemente esenios). Incluyen reglas de vida (<em>Regla de la Comunidad</em>), leyes y comentarios interpretativos (<em>Pesher Habacuc</em>), y el curioso <em>Rollo de Cobre</em> que lista tesoros escondidos.</li>
+            <li><strong>Literatura Intertestamentaria (30%):</strong> Textos judíos apócrifos y pseudoepigráficos altamente valorados en el judaísmo del Segundo Templo, como copias del <em>Libro de Enoc</em> y el <em>Libro de los Jubileos</em>.</li>
+            <li><strong>⚠️ Aclaración importante:</strong> En los Rollos del Mar Muerto <strong>no se encontró absolutamente ningún texto del Nuevo Testamento</strong> ni evangelios gnósticos. Frecuentemente se confunde Qumrán con el hallazgo de la <strong>Biblioteca de Nag Hammadi</strong> (Egipto, 1945), donde sí se descubrió el famoso <em>Evangelio de Tomás</em>. Qumrán fue una biblioteca estrictamente judía precristiana, mientras que Nag Hammadi fue un depósito gnóstico copto posterior.</li>
+          </ul>`,
+        image: "https://upload.wikimedia.org/wikipedia/commons/6/6b/Jericho_and_Dead_Sea_area_and_River_Jordan._Qumran%2C_caves_where_Dead_Sea_scrolls_were_found._Dead_Sea_in_distance_LOC_matpc.22897_%28cropped_and_level_adjusted%29.jpg"
       },
       {
         year: "1960",

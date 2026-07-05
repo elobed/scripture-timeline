@@ -4,6 +4,7 @@ import {
   HostListener
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router, ActivatedRoute } from '@angular/router';
 import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
 import { FilterService } from '../../services/filter.service';
 import { EventCardComponent } from '../event-card/event-card.component';
@@ -551,6 +552,8 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnDestroy {
 
   readonly filterSvc = inject(FilterService);
   private cdr = inject(ChangeDetectorRef);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   activeEvent = signal<TimelineEvent | null>(null);
   isDragging = signal(false);
@@ -657,6 +660,16 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     this.onResize();
+
+    // Auto-open modal from URL query param (deep link)
+    const eventId = this.route.snapshot.queryParams['event'];
+    if (eventId) {
+      const found = TIMELINE_EVENTS.find(e => e.id === eventId);
+      if (found) {
+        // Slight delay so the layout has rendered before opening the modal
+        setTimeout(() => this.activeEvent.set(found), 0);
+      }
+    }
   }
 
   ngAfterViewInit(): void {
@@ -669,10 +682,12 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnDestroy {
 
   openModal(event: TimelineEvent): void {
     this.activeEvent.set(event);
+    this.syncEventUrl(event.id);
   }
 
   closeModal(): void {
     this.activeEvent.set(null);
+    this.syncEventUrl(null);
   }
 
   // ── Modal Navigation Sequence ──────────────────────────────────
@@ -697,7 +712,9 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnDestroy {
     const idx = this.activeIndex;
     if (idx > 0) {
       const visibleItems = this.layoutItems().filter(i => i.visible);
-      this.activeEvent.set(visibleItems[idx - 1].event);
+      const prev = visibleItems[idx - 1].event;
+      this.activeEvent.set(prev);
+      this.syncEventUrl(prev.id);
     }
   }
 
@@ -705,8 +722,19 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnDestroy {
     const idx = this.activeIndex;
     const visibleItems = this.layoutItems().filter(i => i.visible);
     if (idx >= 0 && idx < visibleItems.length - 1) {
-      this.activeEvent.set(visibleItems[idx + 1].event);
+      const next = visibleItems[idx + 1].event;
+      this.activeEvent.set(next);
+      this.syncEventUrl(next.id);
     }
+  }
+
+  /** Sync the event query param in the URL without a full navigation */
+  private syncEventUrl(eventId: string | null): void {
+    this.router.navigate([], {
+      queryParams: { event: eventId },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
 
   getRangeColor(event: TimelineEvent): string {

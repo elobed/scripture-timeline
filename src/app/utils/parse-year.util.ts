@@ -14,43 +14,36 @@
  *   "1827"             → { start: 1827,  end: null }
  */
 export function parseYearString(year: string): { start: number; end: number | null } {
-  const isBC = /a\.C\./i.test(year);
+  let start = 0;
+  let end: number | null = null;
 
-  // Remove prefix tilde, spaces, plus signs, era suffixes for parsing
-  const cleaned = year
-    .replace(/~\s*/g, '')
-    .replace(/\s*a\.C\./gi, '')
-    .replace(/\s*d\.C\./gi, '')
-    .replace(/\+/g, '')
-    .trim();
-
-  // Range: "382 – 405", "1454 / 1455", "100 – 380"
-  const rangeMatch = cleaned.match(/^(\d+)\s*[–\/]\s*(\d+)$/);
-  if (rangeMatch) {
-    let start = parseInt(rangeMatch[1], 10);
-    let end = parseInt(rangeMatch[2], 10);
-    if (isBC) {
-      start = -start;
-      end = -end;
+  // Split by range separators (–, -, /)
+  const parts = year.split(/[–\-\/]/).map(p => p.trim());
+  
+  if (parts.length === 1) {
+    const isBC = /a\.C\./i.test(parts[0]);
+    const numMatch = parts[0].match(/(\d+)/);
+    if (numMatch) {
+      start = parseInt(numMatch[1], 10);
+      if (isBC) start = -start;
     }
-    return { start, end };
+  } else if (parts.length === 2) {
+    // If the first part doesn't specify an era, it inherits 'a.C.' from the second part if the second part is 'a.C.'
+    const isStartBC = /a\.C\./i.test(parts[0]) || (!/d\.C\./i.test(parts[0]) && /a\.C\./i.test(parts[1])); 
+    const isEndBC = /a\.C\./i.test(parts[1]);
+    
+    const startMatch = parts[0].match(/(\d+)/);
+    if (startMatch) {
+      start = parseInt(startMatch[1], 10);
+      if (isStartBC) start = -start;
+    }
+    
+    const endMatch = parts[1].match(/(\d+)/);
+    if (endMatch) {
+      end = parseInt(endMatch[1], 10);
+      if (isEndBC) end = -end;
+    }
   }
 
-  // Single year: "1517", "250", "2020"
-  const singleMatch = cleaned.match(/^(\d+)$/);
-  if (singleMatch) {
-    let start = parseInt(singleMatch[1], 10);
-    if (isBC) start = -start;
-    return { start, end: null };
-  }
-
-  // Fallback: try to extract first number
-  const fallback = cleaned.match(/(\d+)/);
-  if (fallback) {
-    let start = parseInt(fallback[1], 10);
-    if (isBC) start = -start;
-    return { start, end: null };
-  }
-
-  return { start: 0, end: null };
+  return { start, end };
 }
