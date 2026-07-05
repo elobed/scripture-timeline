@@ -494,8 +494,50 @@ import { TIMELINE_EVENTS, TIMELINE_TAGS, TIMELINE_ERAS } from '../../data/timeli
         transform: none;
       }
 
-      .range-bar {
-        display: none;
+      .range-bracket {
+        top: 27px;
+        left: -46px;
+        width: 14px;
+        height: max(24px, calc((var(--span-slots, 1) - 1) * 78px));
+        border-top: 4px solid var(--range-color);
+        border-bottom: 4px solid var(--range-color);
+        border-left: none;
+        border-right: none;
+        transform: none;
+      }
+
+      .range-bracket-line {
+        top: 0;
+        bottom: 0;
+        left: 50%;
+        width: 6px;
+        height: 100%;
+        transform: translateX(-50%);
+      }
+
+      .range-bracket::before,
+      .range-bracket::after {
+        top: auto;
+        bottom: auto;
+        left: 0;
+        right: auto;
+        width: 100%;
+        height: 4px;
+        border-top: none;
+        border-bottom: none;
+        border-left: 2px solid var(--range-color);
+        border-right: 2px solid var(--range-color);
+      }
+      
+      .range-bracket::before { top: -2px; }
+      .range-bracket::after { bottom: -2px; }
+
+      .timeline-event-slot:hover .range-bracket {
+        transform: scaleX(1.4);
+      }
+      .timeline-event-slot:hover .range-bracket-line {
+        height: 100%;
+        width: 8px;
       }
 
       app-event-card {
