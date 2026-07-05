@@ -204,7 +204,7 @@ import { TIMELINE_EVENTS, TIMELINE_TAGS, TIMELINE_ERAS } from '../../data/timeli
       align-items: flex-start; /* label will be top-left */
       justify-content: flex-start;
       /* GUARANTEED to paint over the image by stacking as the first background layer */
-      background-image: 
+      background-image:
         linear-gradient(
           90deg,
           var(--color-era-overlay-edge) 0%,
@@ -251,10 +251,8 @@ import { TIMELINE_EVENTS, TIMELINE_TAGS, TIMELINE_ERAS } from '../../data/timeli
       font-weight: 800; /* slightly heavier to pop through background */
       text-transform: uppercase;
       letter-spacing: 2px;
-      /* The era overlays are inverted! So we use the card background color 
-         (White in Light Mode, Dark in Dark Mode) to guarantee 100% contrast 
-         against the heavily tinted backgrounds. */
-      color: var(--color-bg-card);
+      /* Both themes now darken the background images, so label text is always light */
+      color: rgba(255, 255, 255, 0.92);
       opacity: 0.95; 
       white-space: normal; /* keep wrapping */
       max-width: calc(100% - 24px); 
@@ -304,7 +302,7 @@ import { TIMELINE_EVENTS, TIMELINE_TAGS, TIMELINE_ERAS } from '../../data/timeli
       left: 50%;
       width: max(24px, calc((var(--span-slots, 1) - 1) * var(--slot-w)));
       height: 14px;
-      z-index: 30; /* Above timeline line and stems */
+      z-index: 110; /* Above timeline line, stems and slot-below cards */
       pointer-events: none;
       border-left: 4px solid var(--range-color);
       border-right: 4px solid var(--range-color);
@@ -348,8 +346,8 @@ import { TIMELINE_EVENTS, TIMELINE_TAGS, TIMELINE_ERAS } from '../../data/timeli
       left: 50%;
       transform: translate(-50%, -50%);
       pointer-events: none;
-      /* Z-index 30 guarantees the dot renders ABOVE the card connector stem (which hits z-index 20 on hover) */
-      z-index: 30; 
+      /* Z-index 110 guarantees the dot renders ABOVE the card connector stem (which hits z-index 100 for below cards) */
+      z-index: 110; 
     }
 
     .year-pin-dot {
@@ -380,7 +378,7 @@ import { TIMELINE_EVENTS, TIMELINE_TAGS, TIMELINE_ERAS } from '../../data/timeli
     .timeline-event-slot:hover .range-bracket {
       transform: scaleY(1.4);
       filter: drop-shadow(0 0 5px var(--range-color)) brightness(1.1);
-      z-index: 35;
+      z-index: 115;
     }
     .timeline-event-slot:hover .range-bracket-line {
       height: 8px;
@@ -525,12 +523,12 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnDestroy {
   @HostListener('window:resize')
   onResize(): void {
     if (typeof window === 'undefined') return;
-    
+
     // Reserve vertical space so cards NEVER touch the very top (Header/Titles) 
     // or the very bottom (Filter Panel). Increased to 420px (~210px safe zone top + ~210px safe zone bottom)
-    const reservedVerticalSpace = 420; 
+    const reservedVerticalSpace = 420;
     const availableHeight = (window.innerHeight - reservedVerticalSpace) / 2;
-    
+
     // Calculate how many tracks of 64px fit in the available half-screen height (18px base buffer)
     const count = Math.max(1, Math.floor((availableHeight - 18) / 64));
     this.tracksCount.set(Math.min(count, 5)); // max 5 tracks above + 5 below
@@ -540,7 +538,7 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnDestroy {
   layoutEras = computed(() => {
     const visibleEvents = TIMELINE_EVENTS.filter(e => this.filterSvc.isEventVisible(e));
     const erasMap = new Map<string, { start: number, end: number }>();
-    
+
     visibleEvents.forEach((event, index) => {
       if (!erasMap.has(event.era)) {
         erasMap.set(event.era, { start: index, end: index });
@@ -570,11 +568,11 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnDestroy {
     // 2. Map their placement
     return visibleEvents.map((event, i) => {
       const position: 'above' | 'below' = i % 2 === 0 ? 'above' : 'below';
-      
+
       // Calculate tracks per side independently to distribute them evenly
-      const trackIndex = (position === 'above') 
-          ? Math.floor(i / 2) % tracks 
-          : Math.floor((i - 1) / 2) % tracks;
+      const trackIndex = (position === 'above')
+        ? Math.floor(i / 2) % tracks
+        : Math.floor((i - 1) / 2) % tracks;
 
       // Calculate highly-accurate span across visible slots using floats!
       let spanSlots = 1;
@@ -594,7 +592,7 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnDestroy {
             break;
           }
         }
-        
+
         // If it extends beyond all visible events on the timeline
         if (!found && visibleEvents.length > i + 1) {
           const lastYear = visibleEvents[visibleEvents.length - 1].yearStart;
@@ -673,7 +671,7 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnDestroy {
     const RANGE_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#f43f5e'];
     let hash = 0;
     for (let i = 0; i < event.id.length; i++) {
-       hash = event.id.charCodeAt(i) + ((hash << 5) - hash);
+      hash = event.id.charCodeAt(i) + ((hash << 5) - hash);
     }
     return RANGE_COLORS[Math.abs(hash) % RANGE_COLORS.length];
   }

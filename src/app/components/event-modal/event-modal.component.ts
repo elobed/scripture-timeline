@@ -233,8 +233,14 @@ import { TIMELINE_TAGS } from '../../data/timeline-events.data';
     @media (min-width: 768px) {
       .modal-body {
         padding: 2.5rem 2.5rem 3rem;
-        justify-content: center;
         overflow-x: hidden;
+      }
+      /* Push remaining space below the content so the body text
+         sits near the vertical centre when the modal is tall,
+         but the title is never clipped above the scroll area. */
+      .modal-body::after {
+        content: '';
+        flex: 1 0 0px;
       }
     }
 
