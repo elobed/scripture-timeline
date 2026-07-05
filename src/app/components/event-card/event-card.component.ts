@@ -75,8 +75,7 @@ import { FilterService } from '../../services/filter.service';
         </div>
       </div>
 
-      <!-- Hidden: Full description rendered only during print -->
-      <div class="print-desc" [innerHTML]="getPrintSafeHtml()"></div>
+      <!-- Hidden: Full description rendered only during print (REMOVED: printing handled by separate window) -->
 
       <!-- Connector to timeline line -->
       <div class="card-connector">
@@ -91,12 +90,6 @@ import { FilterService } from '../../services/filter.service';
     :host {
       display: block;
     }
-
-    /* Hidden on screen — only visible during @media print */
-    .print-desc {
-      display: none;
-    }
-    
     .event-card {
       width: max-content; /* Purely bound by its inline contents */
       background: var(--color-bg-card);
@@ -348,10 +341,6 @@ export class EventCardComponent {
 
   private filterSvc = inject(FilterService);
   private sanitizer = inject(DomSanitizer);
-
-  getPrintSafeHtml(): SafeHtml {
-    return this.sanitizer.bypassSecurityTrustHtml(this.event.fullDesc ?? '');
-  }
 
   getTag(tagId: string) {
     return TIMELINE_TAGS[tagId as keyof typeof TIMELINE_TAGS];

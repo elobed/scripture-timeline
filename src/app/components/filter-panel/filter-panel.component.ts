@@ -1,7 +1,9 @@
-import { Component, signal, computed, inject, OnInit } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FilterService, FilterMode } from '../../services/filter.service';
-import { TimelineTag } from '../../models/timeline.models';
+import { Router } from '@angular/router';
+import { FilterService } from '../../services/filter.service';
+import { TIMELINE_TAGS } from '../../data/timeline-events.data';
+import { TimelineTag, TimelineEvent } from '../../models/timeline.models';
 
 @Component({
   selector: 'app-filter-panel',
@@ -16,8 +18,8 @@ import { TimelineTag } from '../../models/timeline.models';
           <span class="filter-arrow">{{ collapsed() ? '▲' : '▼' }}</span>
         </button>
 
-        <button class="print-btn" (click)="onPrint()" title="Imprimir con código QR">
-          🖨️ <span>Imprimir</span>
+        <button class="print-btn" (click)="onPrint()" [disabled]="printing()" title="Imprimir con código QR">
+          {{ printing() ? '⏳' : '🖨️' }} <span>{{ printing() ? 'Generando...' : 'Imprimir' }}</span>
         </button>
       </div>
 
@@ -96,13 +98,6 @@ import { TimelineTag } from '../../models/timeline.models';
         </div>
       </div>
     </div>
-
-    <!-- QR code for printing (only visible in print) -->
-    <div class="print-qr-container" id="print-qr-container">
-      <canvas id="qr-canvas"></canvas>
-      <div class="qr-label">Escanea para ver esta vista filtrada</div>
-      <div class="qr-url" id="qr-url"></div>
-    </div>
   `,
   styles: [`
     .filter-panel {
@@ -164,6 +159,7 @@ import { TimelineTag } from '../../models/timeline.models';
       transition: all var(--transition-fast);
     }
     .print-btn:hover { background: var(--color-accent-subtle); color: var(--color-accent); border-color: var(--color-accent); }
+    .print-btn:disabled { opacity: 0.6; cursor: wait; }
 
     .filter-body {
       max-height: 0;
@@ -309,34 +305,8 @@ import { TimelineTag } from '../../models/timeline.models';
       color: var(--color-text-primary);
     }
 
-    /* Print QR section */
-    .print-qr-container {
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      padding: 16px;
-    }
-
-    .qr-label {
-      font-size: 0.85rem;
-      color: #333;
-    }
-
-    .qr-url {
-      font-size: 0.7rem;
-      color: #666;
-      word-break: break-all;
-      max-width: 250px;
-      text-align: center;
-    }
-
-    @media screen {
-      .print-qr-container { display: none; }
-    }
-
     @media print {
       .filter-panel { display: none !important; }
-      .print-qr-container { display: flex !important; }
     }
 
     @media (max-width: 480px) {
@@ -347,8 +317,10 @@ import { TimelineTag } from '../../models/timeline.models';
 })
 export class FilterPanelComponent {
   readonly filterSvc = inject(FilterService);
+  private router = inject(Router);
   collapsed = signal(false);
   action = signal<'filter'|'highlight'>('filter');
+  printing = signal(false);
 
   togglePanel(): void {
     this.collapsed.update(v => !v);
@@ -367,21 +339,232 @@ export class FilterPanelComponent {
     this.filterSvc.toggleHighlight(tag.id);
   }
 
-  onPrint(): void {
-    this.generateQr().then(() => window.print());
+  async onPrint(): Promise<void> {
+    this.printing.set(true);
+    try {
+      const QRCode = await import('qrcode');
+      const events = this.filterSvc.getVisibleEvents();
+      const baseUrl = this.getBaseUrl();
+
+      // Generate QR data URLs in parallel
+      const qrPromises = events.map(ev =>
+        (QRCode.toDataURL as (text: string, opts: any) => Promise<string>)(
+          `${baseUrl}?event=${ev.id}`,
+          { width: 100, margin: 1, color: { dark: '#1c1710', light: '#ffffff' } }
+        )
+      );
+      const globalQrPromise = (QRCode.toDataURL as (text: string, opts: any) => Promise<string>)(
+        window.location.href,
+        { width: 180, margin: 2, color: { dark: '#1c1710', light: '#ffffff' } }
+      );
+
+      const [eventQrs, globalQr] = await Promise.all([
+        Promise.all(qrPromises),
+        globalQrPromise,
+      ]);
+
+      const html = this.buildPrintHtml(events, eventQrs, globalQr);
+      this.openPrintWindow(html);
+    } catch (err) {
+      console.error('Error generating print view:', err);
+      // Fallback: print without QR codes
+      const events = this.filterSvc.getVisibleEvents();
+      const html = this.buildPrintHtml(events, [], '');
+      this.openPrintWindow(html);
+    } finally {
+      this.printing.set(false);
+    }
   }
 
-  private async generateQr(): Promise<void> {
-    const QRCode = await import('qrcode');
-    const url = window.location.href;
-    const canvas = document.getElementById('qr-canvas') as HTMLCanvasElement;
-    const urlEl = document.getElementById('qr-url');
-    const container = document.getElementById('print-qr-container');
+  private getBaseUrl(): string {
+    const origin = window.location.origin;
+    const hash = window.location.hash.split('?')[0]; // e.g. #/timeline
+    return `${origin}/${hash}`;
+  }
 
-    if (canvas) {
-      await QRCode.toCanvas(canvas, url, { width: 200, margin: 2 });
+  private getTag(tagId: string) {
+    return TIMELINE_TAGS[tagId as keyof typeof TIMELINE_TAGS];
+  }
+
+  private buildPrintHtml(
+    events: TimelineEvent[],
+    eventQrs: string[],
+    globalQr: string
+  ): string {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('es-MX', {
+      year: 'numeric', month: 'long', day: 'numeric'
+    });
+    const hasHighlights = this.filterSvc.hasHighlights();
+
+    // Build active filters description
+    const activeTagIds = Array.from(this.filterSvc.activeTags());
+    const activeLabels = activeTagIds
+      .map(id => this.getTag(id))
+      .filter(Boolean)
+      .map(t => `${t!.icon} ${t!.label}`);
+
+    // Build event cards HTML
+    const eventsHtml = events.map((ev, i) => {
+      const isHighlighted = this.filterSvc.isEventHighlighted(ev);
+      const borderColor = isHighlighted ? '#d97706' : '#3b82f6';
+      const borderWidth = isHighlighted ? '5px' : '3px';
+      const highlightBg = isHighlighted ? 'background: #fffbeb;' : '';
+      const highlightBadge = isHighlighted
+        ? `<span style="display:inline-block;background:#fef3c7;color:#92400e;font-size:7.5pt;font-weight:600;padding:1px 8px;border-radius:999px;border:1px solid #f59e0b;margin-left:8px;vertical-align:middle;">★ Resaltado</span>`
+        : '';
+
+      // Tag chips
+      const tagsHtml = ev.tags.map(tagId => {
+        const tag = this.getTag(tagId);
+        if (!tag) return '';
+        return `<span style="display:inline-flex;align-items:center;gap:3px;padding:1px 8px;border-radius:999px;border:1px solid ${tag.border};background:${tag.bg};color:${tag.color};font-size:7pt;font-weight:600;white-space:nowrap;">${tag.icon} ${tag.label}</span>`;
+      }).join(' ');
+
+      // Clean description: strip secondary img tags for cleaner print, keep text
+      const cleanDesc = (ev.fullDesc || '')
+        .replace(/<img[^>]*class=['"]modal-inline-img[^'"]*['"][^>]*>/gi, '');
+
+      // QR code for this event
+      const qrHtml = eventQrs[i]
+        ? `<div style="flex-shrink:0;text-align:center;margin-left:12px;">
+             <img src="${eventQrs[i]}" alt="QR" style="width:72px;height:72px;border:1px solid #e5e7eb;border-radius:4px;" />
+             <div style="font-size:5.5pt;color:#9ca3af;margin-top:2px;">Ver detalles</div>
+           </div>`
+        : '';
+
+      return `
+        <article style="
+          border-left: ${borderWidth} solid ${borderColor};
+          padding: 8px 14px;
+          margin-bottom: 14px;
+          page-break-inside: avoid;
+          break-inside: avoid;
+          ${highlightBg}
+          border-radius: 0 6px 6px 0;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        ">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px;">
+                <span style="font-family:'Playfair Display',Georgia,serif;font-size:11pt;font-weight:700;color:${borderColor};white-space:nowrap;">${ev.yearLabel}</span>
+                <span style="font-family:'Playfair Display',Georgia,serif;font-size:11pt;font-weight:700;color:#1c1710;">${ev.title}</span>
+                ${highlightBadge}
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;">${tagsHtml}</div>
+              <div style="font-size:8.5pt;color:#374151;line-height:1.45;text-align:justify;">${cleanDesc}</div>
+            </div>
+            ${qrHtml}
+          </div>
+        </article>`;
+    }).join('\n');
+
+    // Global QR footer
+    const globalQrHtml = globalQr
+      ? `<div style="
+           display:flex;
+           flex-direction:column;
+           align-items:center;
+           gap:8px;
+           margin-top:24px;
+           padding:20px;
+           border-top:2px solid #e5e7eb;
+           page-break-inside:avoid;
+         ">
+           <img src="${globalQr}" alt="QR Vista Filtrada" style="width:140px;height:140px;border:1px solid #d1d5db;border-radius:8px;" />
+           <div style="font-family:'Playfair Display',Georgia,serif;font-size:10pt;font-weight:600;color:#374151;">Escanea para ver esta vista filtrada</div>
+           <div style="font-size:7pt;color:#9ca3af;word-break:break-all;max-width:400px;text-align:center;">${window.location.href}</div>
+         </div>`
+      : '';
+
+    return `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Línea del Tiempo Bíblica — Impresión</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 9pt;
+      color: #1c1710;
+      background: #ffffff;
+      line-height: 1.4;
+      padding: 12mm 14mm;
     }
-    if (urlEl) urlEl.textContent = url;
-    // Removed JS display manipulation; handled purely by CSS @media print
+    @page {
+      size: A4;
+      margin: 10mm;
+    }
+    @media print {
+      body { padding: 0; }
+    }
+    a { color: #2563eb; text-decoration: none; }
+    strong { color: #111827; font-weight: 600; }
+    em { font-style: italic; }
+    ul { margin: 0.3em 0 0.6em 1.2em; }
+    li { margin-bottom: 0.3em; }
+    p { margin-bottom: 0.5em; }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header style="
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 14px;
+    margin-bottom: 18px;
+    border-bottom: 3px solid #1e40af;
+  ">
+    <div>
+      <h1 style="font-family:'Playfair Display',Georgia,serif;font-size:18pt;font-weight:700;color:#1e3a5f;margin:0;">
+        ✝ Línea del Tiempo Bíblica
+      </h1>
+      <div style="font-size:8pt;color:#6b7280;margin-top:4px;">
+        Impreso el ${dateStr} · ${events.length} evento${events.length !== 1 ? 's' : ''}
+      </div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:7.5pt;color:#6b7280;">Filtros activos:</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end;margin-top:3px;">
+        ${activeLabels.map(l => `<span style="font-size:7pt;padding:1px 6px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:999px;color:#475569;white-space:nowrap;">${l}</span>`).join('')}
+      </div>
+      ${hasHighlights ? '<div style="font-size:7pt;color:#92400e;margin-top:3px;">★ Se muestran eventos resaltados</div>' : ''}
+    </div>
+  </header>
+
+  <!-- Events -->
+  <main>
+    ${eventsHtml}
+  </main>
+
+  <!-- Footer with global QR -->
+  <footer>
+    ${globalQrHtml}
+  </footer>
+</body>
+</html>`;
+  }
+
+  private openPrintWindow(html: string): void {
+    const printWin = window.open('', '_blank', 'width=900,height=700');
+    if (!printWin) {
+      alert('No se pudo abrir la ventana de impresión. Por favor permite las ventanas emergentes.');
+      return;
+    }
+    printWin.document.write(html);
+    printWin.document.close();
+
+    // Wait for fonts and images to load before printing
+    printWin.onload = () => {
+      setTimeout(() => {
+        printWin.focus();
+        printWin.print();
+      }, 600);
+    };
   }
 }
